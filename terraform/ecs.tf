@@ -103,21 +103,21 @@ resource "aws_ecs_task_definition" "app" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
-  #################################################
-  # 2. Tell Fargate to use Linux (for SSM agent) #
-  #################################################
-  # Inside your aws_ecs_task_definition "app" resource:
-  runtime_platform {
-    operating_system_family = "LINUX"
-  }
+  # #################################################
+  # # 2. Tell Fargate to use Linux (for SSM agent) #
+  # #################################################
+  # # Inside your aws_ecs_task_definition "app" resource:
+  # runtime_platform {
+  #   operating_system_family = "LINUX"
+  # }
   
-  volume {
-    name = "media-volume"
-    efs_volume_configuration {
-      file_system_id     = aws_efs_file_system.media.id
-      transit_encryption = "ENABLED"
-    }
-  }
+  # volume {
+  #   name = "media-volume"
+  #   efs_volume_configuration {
+  #     file_system_id     = aws_efs_file_system.media.id
+  #     transit_encryption = "ENABLED"
+  #   }
+  # }
 
   container_definitions = jsonencode([
     {
@@ -126,38 +126,38 @@ resource "aws_ecs_task_definition" "app" {
       essential = true
       user      = "root"
 
-      # override entrypoint: if EFS media is empty, copy from image
-      command = [
-        "sh","-c",
-        <<-EOC
-          if [ ! -f /efs/media/.seeded ]; then
-            echo "Seeding EFS with built-in media…"
-            cp -a /var/www/html/public/media/. /efs/media/
-            touch /efs/media/.seeded
-          fi
-          # swap out the original folder
-          rm -rf /var/www/html/public/media
-          ln -s /efs/media /var/www/html/public/media
-          # now start Dockware as normal
-          exec /opt/bin/dockware start
-        EOC
-      ]
+      # # override entrypoint: if EFS media is empty, copy from image
+      # command = [
+      #   "sh","-c",
+      #   <<-EOC
+      #     if [ ! -f /efs/media/.seeded ]; then
+      #       echo "Seeding EFS with built-in media…"
+      #       cp -a /var/www/html/public/media/. /efs/media/
+      #       touch /efs/media/.seeded
+      #     fi
+      #     # swap out the original folder
+      #     rm -rf /var/www/html/public/media
+      #     ln -s /efs/media /var/www/html/public/media
+      #     # now start Dockware as normal
+      #     exec /opt/bin/dockware start
+      #   EOC
+      # ]
 
       portMappings = [
         { containerPort = 80, hostPort = 80 }
       ]
 
-      mountPoints = [{
-        sourceVolume  = "media-volume"
-        #containerPath = "/var/www/html/public/media"
-        containerPath = "/efs/media"
-        readOnly      = false
-      }]
+      # mountPoints = [{
+      #   sourceVolume  = "media-volume"
+      #   #containerPath = "/var/www/html/public/media"
+      #   containerPath = "/efs/media"
+      #   readOnly      = false
+      # }]
 
       environment = [
-        { name = "DATABASE_URL", value = "mysql://${var.db_user}:${var.db_password}@${aws_db_instance.shopware.address}:${var.db_port}/${var.db_name}"},
-        { name = "DATABASE_HOST" , value = aws_db_instance.shopware.address },
-        { name = "DATABASE_PORT" , value = "3306" },
+        # { name = "DATABASE_URL", value = "mysql://${var.db_user}:${var.db_password}@${aws_db_instance.shopware.address}:${var.db_port}/${var.db_name}"},
+        # { name = "DATABASE_HOST" , value = aws_db_instance.shopware.address },
+        # { name = "DATABASE_PORT" , value = "3306" },
         # { name = "DATABASE_USER" , value = var.db_user },
         # { name = "DATABASE_NAME" , value = var.db_name }
       ]
